@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Spa - Book Now</title>
+  <!-- FontAwesome Icons (free) -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" />
+  <!-- Google Fonts -->
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;1,400&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+  <!-- style.css -->
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <!-- navigation -->
+  <nav class="nav">
+    <div class="logo">
+      <i class="fas fa-spa"></i>
+      <span>Spa</span>
+      <span class="logo-sub">SPA & WELLNESS</span>
+    </div>
+    <div class="nav-links">
+      <a href="index.html">Home</a>
+      <a href="services.html">Services</a>
+      <a href="booking.html" class="active">Book Now</a>
+      <a href="appointments.html">My Appointments</a>
+    </div>
+    <div class="nav-actions">
+      <a href="booking.html" class="btn-nav">Book Now</a>
+    </div>
+  </nav>
+
+  <!-- ========== BOOKING PAGE ========== -->
+  <section id="page-booking" class="page active-page">
+    <div class="section-header">
+      <span class="section-label">HOME > BOOK NOW</span>
+      <h1>Book Your Experience</h1>
+    </div>
+    <div class="booking-panel">
+      <div class="form-group">
+        <label>Select Service</label>
+        <select id="service-select" required>
+          <option value="">Select a service...</option>
+          <option value="p1">Aromatherapy - R75</option>
+          <option value="p2">Hot Stone - R95</option>
+          <option value="p3">Deep Tissue - R110</option>
+          <option value="p4">Facial & Glow - R85</option>
+        </select>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label>Your Name</label>
+          <input type="text" id="client-name" placeholder="Full name" required />
+        </div>
+        <div class="form-group">
+          <label>WhatsApp Number</label>
+          <input type="tel" id="client-phone" placeholder="0673666047" required />
+        </div>
+      </div>
+      <div class="form-group">
+        <label>Preferred Date & Time</label>
+        <input type="datetime-local" id="booking-datetime" required />
+      </div>
+      <button class="btn btn-primary" id="submit-booking-btn"><i class="fas fa-calendar-check"></i> Confirm Booking</button>
+      <div id="booking-msg" class="msg" style="margin-top:1rem; display:none;"></div>
+    </div>
+  </section>
+  
+  <footer class="footer">
+    <div class="footer-content">
+      <div class="footer-brand">
+        <div class="logo"><i class="fas fa-spa"></i> LUMIERE <span>SPA & WELLNESS</span></div>
+        <p>Your moment of calm, every day.</p>
+      </div>
+      <div class="footer-social">
+        <h4>Follow Us</h4>
+        <div class="social-links">
+          <a href="#" aria-label="Instagram"><i class="fab fa-instagram"></i></a>
+          <a href="#" aria-label="Facebook"><i class="fab fa-facebook-f"></i></a>
+          <a href="#" aria-label="TikTok"><i class="fab fa-tiktok"></i></a>
+        </div>
+      </div>
+      <div class="footer-contact">
+        <h4>Contact</h4>
+        <p><i class="fas fa-phone"></i> 0673666047</p>
+        <p><i class="fas fa-envelope"></i> hello@spa.com</p>
+        <p><i class="fas fa-map-marker-alt"></i> South Gate, SP</p>
+      </div>
+    </div>
+    <div class="footer-bottom">
+      <p>&copy; 2026 Spa & Wellness. All rights reserved.</p>
+    </div>
+  </footer>
+  <script src="script.js"></script>
+</body>
+</html>

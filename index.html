@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Spa & Wellness</title>
+  <!-- FontAwesome Icons (free) -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" />
+  <!-- Google Fonts -->
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;1,400&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+  <!-- style.css -->
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <!-- navigation -->
+  <nav class="nav">
+    <div class="logo">
+      <i class="fas fa-spa"></i>
+      <span>Spa</span>
+      <span class="logo-sub">SPA & WELLNESS</span>
+    </div>
+    <div class="nav-links">
+      <a href="index.html" class="active">Home</a>
+      <a href="services.html">Services</a>
+      <a href="booking.html">Book Now</a>
+      <a href="appointments.html">My Appointments</a>
+    </div>
+    <div class="nav-actions">
+      <a href="booking.html" class="btn-nav">Book Now</a>
+    </div>
+  </nav>
+
+  <!-- ========== HERO SECTION ========== -->
+  <section id="hero" class="hero">
+    <div class="hero-content">
+      <span class="hero-tagline">RELAX. REJUVENATE. RENEW.</span>
+      <h1 class="hero-title">The Art of <br><span>Wellness & Relaxation</span></h1>
+      <p class="hero-text">Escape the stress of everyday life and indulge in a journey of serenity and self-care.</p>
+      <div class="hero-buttons">
+        <a href="booking.html" class="btn btn-primary">Book Now</a>
+        <a href="#" class="btn btn-outline"><i class="fas fa-play-circle"></i> Watch Our Story</a>
+      </div>
+      <div class="hero-features">
+        <div class="feature-item">
+          <i class="fas fa-leaf"></i>
+          <span>Natural & Organic</span>
+        </div>
+        <div class="feature-item">
+          <i class="fas fa-user-md"></i>
+          <span>Expert Therapists</span>
+        </div>
+        <div class="feature-item">
+          <i class="fas fa-spa"></i>
+          <span>Luxury Experience</span>
+        </div>
+        <div class="feature-item">
+          <i class="fas fa-gem"></i>
+          <span>Exclusive Packages</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ========== HOME PAGE CONTENT ========== -->
+  <section id="page-home" class="page active-page">
+    <!-- Our Services Section -->
+    <div class="section-header">
+      <span class="section-label">HOME PAGE</span>
+      <h2>Our Services</h2>
+    </div>
+
+    <div class="product-grid" id="home-product-grid">
+      <div class="product-card">
+        <div class="card-image">
+          <img src="image2.jfif" alt="Aromatherapy" />
+          <span class="card-badge">Popular</span>
+        </div>
+        <div class="card-content">
+          <h3>Aromatherapy</h3>
+          <p>Essential oils for relaxation</p>
+          <div class="price">R75</div>
+          <button class="book-from-card" data-id="p1">Book Now</button>
+        </div>
+      </div>
+      
+      <div class="product-card">
+        <div class="card-image">
+          <img src="image4.jfif" alt="Hot Stone" />
+        </div>
+        <div class="card-content">
+          <h3>Hot Stone</h3>
+          <p>Warm stone therapy</p>
+          <div class="price">R95</div>
+          <button class="book-from-card" data-id="p2">Book Now</button>
+        </div>
+      </div>
+      
+      <div class="product-card">
+        <div class="card-image">
+          <img src="image1.jfif" alt="Deep Tissue" />
+        </div>
+        <div class="card-content">
+          <h3>Deep Tissue</h3>
+          <p>Intense muscle relief</p>
+          <div class="price">R110</div>
+          <button class="book-from-card" data-id="p3">Book Now</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Wellness Tailored Section -->
+    <div class="wellness-section">
+      <div class="wellness-content">
+        <span class="section-label">WELLNESS TAILORED</span>
+        <h2>Just For You</h2>
+        <p>At Lumiere Spa, we believe wellness is a journey — our mission is to create a peaceful escape where you can relax, heal and glow.</p>
+        <a href="booking.html" class="btn btn-primary">Book Your Experience</a>
+      </div>
+      <div class="wellness-image">
+        <div class="wellness-placeholder">
+          <i class="fas fa-spa"></i>
+          <span>Your Sanctuary of Serenity</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Testimonials Section -->
+    <div class="testimonials-section">
+      <span class="section-label">TRUSTED BY OUR CLIENTS</span>
+      <div class="testimonial-card">
+        <div class="stars">★★★★★</div>
+        <p>"The best spa experience I've ever had! The ambience, the staff, everything was perfect. I left feeling completely refreshed."</p>
+        <div class="testimonial-author">
+          <span class="author-name">— Sarah J.</span>
+          <span class="author-date">2 weeks ago</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- REVIEWS + MAP SECTION -->
+    <div class="review-map-wrapper">
+      <div class="review-box">
+        <h3>Leave a Review</h3>
+        <div class="rating-input" id="star-rating">
+          <button class="star-btn" data-star="1"><i class="fas fa-star"></i></button>
+          <button class="star-btn" data-star="2"><i class="fas fa-star"></i></button>
+          <button class="star-btn" data-star="3"><i class="fas fa-star"></i></button>
+          <button class="star-btn" data-star="4"><i class="fas fa-star"></i></button>
+          <button class="star-btn" data-star="5"><i class="fas fa-star"></i></button>
+        </div>
+        <div class="form-group">
+          <textarea id="review-text" rows="3" placeholder="Share your experience..." style="border-radius:20px; width:100%;"></textarea>
+        </div>
+        <button class="btn btn-primary" id="submit-review-btn"><i class="fas fa-pen"></i> Submit Review</button>
+        
+        <div class="review-list" id="review-list"></div>
+      </div>
+
+      <div class="map-box">
+        <h3><i class="fas fa-map-pin"></i> Find Us</h3>
+        <div class="map-container">
+          <iframe 
+            src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3657.097543029594!2d-46.65414438440789!3d-23.56561928468399!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x94ce59c8da0aa315%3A0xd59c5f3f2c8c1a0d!2sAv.%20Paulista%2C%20S%C3%A3o%20Paulo%20-%20SP%2C%20Brazil!5e0!3m2!1sen!2sza!4v1717000000000!5m2!1sen!2sza" 
+            allowfullscreen="" 
+            loading="lazy" 
+            referrerpolicy="no-referrer-when-downgrade">
+          </iframe>
+        </div>
+        <p><i class="fas fa-location-dot"></i> South Gate, SP</p>
+      </div>
+    </div>
+  </section>
+  
+  <footer class="footer">
+    <div class="footer-content">
+      <div class="footer-brand">
+        <div class="logo"><i class="fas fa-spa"></i> LUMIERE <span>SPA & WELLNESS</span></div>
+        <p>Your moment of calm, every day.</p>
+      </div>
+      <div class="footer-social">
+        <h4>Follow Us</h4>
+        <div class="social-links">
+          <a href="#" aria-label="Instagram"><i class="fab fa-instagram"></i></a>
+          <a href="#" aria-label="Facebook"><i class="fab fa-facebook-f"></i></a>
+          <a href="#" aria-label="TikTok"><i class="fab fa-tiktok"></i></a>
+        </div>
+      </div>
+      <div class="footer-contact">
+        <h4>Contact</h4>
+        <p><i class="fas fa-phone"></i> 0673666047</p>
+        <p><i class="fas fa-envelope"></i> hello@spa.com</p>
+        <p><i class="fas fa-map-marker-alt"></i> South Gate, SP</p>
+      </div>
+    </div>
+    <div class="footer-bottom">
+      <p>&copy; 2026 Spa & Wellness. All rights reserved.</p>
+    </div>
+  </footer>
+  <script src="script.js"></script>
+</body>
+</html>
