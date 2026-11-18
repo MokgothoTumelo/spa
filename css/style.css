@@ -721,7 +721,7 @@ h2 {
 
 .footer-content {
   display: grid;
-  grid-template-columns: 1.5fr 1fr 1.2fr;
+  grid-template-columns: 1.5fr 1.2fr 1fr;
   gap: 3rem;
   max-width: 1200px;
   margin: 0 auto;
@@ -903,7 +903,7 @@ a.contact-item:focus-visible i {
 
   /* keep the same 3-column layout as laptop, just scaled down */
   .footer-content {
-    grid-template-columns: 0.95fr 1.1fr 1.35fr;
+    grid-template-columns: 0.95fr 1.35fr 1.1fr;
     gap: 0.9rem;
     text-align: left;
     padding-bottom: 1.5rem;
@@ -1055,7 +1055,7 @@ a.contact-item:focus-visible i {
 
 @media (max-width: 340px) {
   .footer-content {
-    grid-template-columns: 0.85fr 1fr 1.6fr;
+    grid-template-columns: 0.85fr 1.6fr 1fr;
     gap: 0.5rem;
   }
 
