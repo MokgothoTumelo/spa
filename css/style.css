@@ -1069,3 +1069,90 @@ a.contact-item:focus-visible i {
     gap: 0.25rem;
   }
 }
+
+/* ===== HOME: FEATURED SERVICE ===== */
+.featured-card {
+  display: grid;
+  grid-template-columns: 1.1fr 1fr;
+  max-width: 900px;
+  margin: 0 auto 3rem;
+}
+
+.featured-card:hover {
+  transform: none;
+}
+
+.featured-card .card-image {
+  height: 100%;
+  min-height: 320px;
+}
+
+.featured-card .card-content {
+  padding: 2.5rem;
+  text-align: left;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+
+.featured-card .card-content h3 {
+  font-size: 1.8rem;
+}
+
+.featured-card .card-content p {
+  font-size: 1rem;
+}
+
+.featured-card .card-content .price {
+  font-size: 1.4rem;
+}
+
+.featured-actions {
+  display: flex;
+  gap: 0.8rem;
+  flex-wrap: wrap;
+  margin-top: 1rem;
+}
+
+.featured-card .card-content button {
+  background: #c4a88a;
+  padding: 0.7rem 2.2rem;
+  font-size: 0.9rem;
+}
+
+.featured-card .card-content button:hover {
+  background: #b8956f;
+}
+
+@media (max-width: 768px) {
+  .featured-card {
+    grid-template-columns: 1fr;
+    margin-bottom: 2rem;
+  }
+
+  .featured-card .card-image {
+    height: 220px;
+    min-height: 0;
+  }
+
+  .featured-card .card-content {
+    padding: 1.5rem 1.25rem 1.75rem;
+    text-align: center;
+  }
+
+  .featured-card .card-content h3 {
+    font-size: 1.5rem;
+  }
+
+  .featured-actions {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .featured-actions .btn,
+  .featured-card .card-content button {
+    width: 100%;
+    text-align: center;
+    padding: 0.85rem 1rem;
+  }
+}
