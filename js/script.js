@@ -58,14 +58,16 @@
     return code;
   }
 
-  function formatDate(dt, withYear) {
+  function formatDate(dt, withYear, hours) {
     if (!dt) return 'TBD';
     try {
       const d = new Date(dt);
       if (isNaN(d)) return dt;
       const opts = { weekday: 'short', day: 'numeric', month: 'short' };
       if (withYear) opts.year = 'numeric';
-      return d.toLocaleDateString('en-GB', opts) + ' at ' + pad(d.getHours()) + ':' + pad(d.getMinutes());
+      let out = d.toLocaleDateString('en-GB', opts) + ' at ' + pad(d.getHours()) + ':' + pad(d.getMinutes());
+      if (hours > 1) out += ' – ' + pad(d.getHours() + hours) + ':' + pad(d.getMinutes());
+      return out;
     } catch { return dt; }
   }
 
@@ -116,6 +118,7 @@
     const newApp = {
       id: '#' + (idCounter++),
       code: generateBookingCode(),
+      services: customData.services || null,
       productName: product.name,
       productPrice: product.price,
       dateTime: dateStr,
@@ -131,65 +134,147 @@
     return newApp;
   }
 
+  function appServices(app) {
+    if (app.services && app.services.length) return app.services.map(x => ({ name: x.name, price: 'R' + x.price }));
+    return [{ name: app.productName, price: app.productPrice }];
+  }
+
+  function appHours(app) {
+    return app.services && app.services.length ? app.services.length : 1;
+  }
+
   function buildBookingMessage(app) {
+    const list = appServices(app);
+    const services = list.length > 1
+      ? `📋 SERVICES:\n${list.map(x => `   • ${x.name} - ${x.price}`).join('\n')}\n💰 TOTAL: ${app.productPrice}`
+      : `📋 SERVICE: ${list[0].name}\n💰 PRICE: ${app.productPrice}`;
     return `NEW BOOKING - LUMIERE SPA
 
 ━━━━━━━━━━━━━━━━━━━━
 🔖 BOOKING CODE: ${app.code || app.id}
-📋 SERVICE: ${app.productName}
-💰 PRICE: ${app.productPrice}
+${services}
 👤 CLIENT: ${app.clientName}
 📱 PHONE: ${app.clientPhone}
-📅 DATE/TIME: ${formatDate(app.dateTime, true)}
+📅 DATE/TIME: ${formatDate(app.dateTime, true, appHours(app))}
 ━━━━━━━━━━━━━━━━━━━━
 
 ⚠️ PLEASE CONFIRM THIS BOOKING
 Reply to this client to confirm.`;
   }
 
+  const STATUS_LABELS = {
+    'pending': 'Waiting for confirmation',
+    'reschedule requested': 'Change requested',
+    'cancelled': 'Cancelled'
+  };
+  let openPanel = null; // { id, mode: 'reschedule' | 'cancel' }
+
+  function buildChangeMessage(app, type) {
+    if (type === 'cancel') {
+      return `CANCELLATION - LUMIERE SPA\n\n🔖 BOOKING CODE: ${app.code || app.id}\n📋 SERVICE: ${app.productName}\n👤 CLIENT: ${app.clientName}\n📅 WAS BOOKED FOR: ${formatDate(app.dateTime, true, appHours(app))}\n📱 PHONE: ${app.clientPhone}\n\nI would like to cancel this booking.`;
+    }
+    return `RESCHEDULE REQUEST - LUMIERE SPA\n\n🔖 BOOKING CODE: ${app.code || app.id}\n📋 SERVICE: ${app.productName}\n👤 CLIENT: ${app.clientName}\n📅 NEW TIME: ${formatDate(app.dateTime, true, appHours(app))}\n📱 PHONE: ${app.clientPhone}\n\nPlease confirm this new time.`;
+  }
+
   function renderAppointments() {
     if (!appointmentList) return;
+    const active = appointments.filter(a => a.status !== 'cancelled').length;
+    if (appointmentCount) appointmentCount.textContent = active;
+
     if (appointments.length === 0) {
-      appointmentList.innerHTML = `<p style="color:#6b5d4c; text-align:center; padding: 2rem 0;">No appointments yet. <a href="booking.html" style="color:#c4a88a; font-weight:500;">Book a service</a></p>`;
-      if (appointmentCount) appointmentCount.textContent = '0';
+      appointmentList.innerHTML = `<div class="appt-empty"><i class="far fa-calendar"></i><p>No appointments yet.</p><a href="booking.html" class="btn btn-primary">Book a service</a></div>`;
       return;
     }
 
-    appointmentList.innerHTML = appointments.map(app => `
-      <div class="appointment-item">
-        <div class="info">
-          <strong>${esc(app.code || app.id)}</strong>
-          <span>${esc(app.productName)}</span>
-          <span>${esc(app.clientName)}</span>
-          <span>${esc(formatDate(app.dateTime))}</span>
-          <span class="badge">${esc(app.status)}</span>
-        </div>
-        <div class="actions">
-          <button class="reschedule-btn" data-id="${esc(app.id)}"><i class="fas fa-rotate"></i></button>
-          <button class="cancel-btn" data-id="${esc(app.id)}"><i class="fas fa-times"></i></button>
-        </div>
-      </div>
-    `).join('');
+    appointmentList.innerHTML = appointments.map(app => {
+      const cancelled = app.status === 'cancelled';
+      const stClass = 'st-' + app.status.replace(/\s+/g, '-');
+      const panel = openPanel && openPanel.id === app.id ? openPanel.mode : null;
+      let body = '';
 
-    appointmentList.querySelectorAll('.reschedule-btn').forEach(btn => {
-      btn.addEventListener('click', () => {
-        const target = appointments.find(a => a.id === btn.dataset.id);
-        rescheduleId.value = target ? (target.code || target.id) : btn.dataset.id;
-        document.querySelector('#page-appointments')?.scrollIntoView({ behavior: 'smooth' });
-      });
+      if (app.notice) {
+        const url = `https://wa.me/${SPA_WHATSAPP}?text=${encodeURIComponent(buildChangeMessage(app, app.notice))}`;
+        body += `<div class="appt-notice"><p>${app.notice === 'cancel' ? 'Tell us you are cancelling so we can free your time.' : 'Send your new time to us to finish. It is not final until we reply.'}</p><a class="btn btn-whatsapp btn-block" href="${url}" target="_blank" rel="noopener" data-act="sent" data-id="${esc(app.id)}"><i class="fab fa-whatsapp"></i> Send on WhatsApp</a></div>`;
+      }
+
+      if (panel === 'reschedule') {
+        body += `<div class="appt-panel" data-hours="${appHours(app)}"><div class="form-row"><div class="form-group"><label>New date</label><input type="date" class="rs-date" min="${todayStr()}" /></div><div class="form-group"><label>New time</label><select class="rs-time" disabled><option value="">Choose a date first</option></select></div></div><div class="field-error rs-error"></div><div class="appt-btns"><button class="btn btn-primary" data-act="save-reschedule" data-id="${esc(app.id)}">Request new time</button><button class="link-btn" data-act="close">Close</button></div></div>`;
+      } else if (panel === 'cancel') {
+        body += `<div class="appt-panel"><p>Cancel this booking?</p><div class="appt-btns"><button class="btn btn-danger" data-act="confirm-cancel" data-id="${esc(app.id)}">Yes, cancel it</button><button class="link-btn" data-act="close">Keep it</button></div></div>`;
+      } else if (cancelled) {
+        body += `<div class="appt-btns"><button class="link-btn" data-act="remove" data-id="${esc(app.id)}">Remove from list</button></div>`;
+      } else {
+        body += `<div class="appt-btns"><button class="btn btn-outline" data-act="reschedule" data-id="${esc(app.id)}"><i class="fas fa-rotate"></i> Reschedule</button><button class="link-btn" data-act="cancel" data-id="${esc(app.id)}">Cancel booking</button></div>`;
+      }
+
+      return `<div class="appt-card${cancelled ? ' is-cancelled' : ''}">
+        <div class="appt-top"><span class="appt-code">${esc(app.code || app.id)}</span><span class="appt-status ${stClass}">${esc(STATUS_LABELS[app.status] || app.status)}</span></div>
+        <div class="appt-service">${esc(app.productName)} <span class="appt-price">${esc(app.productPrice)}</span></div>
+        <div class="appt-meta"><span><i class="far fa-calendar"></i> ${esc(formatDate(app.dateTime, true, appHours(app)))}</span><span><i class="far fa-user"></i> ${esc(app.clientName)}</span></div>
+        ${body}
+      </div>`;
+    }).join('');
+  }
+
+  function setupAppointmentActions() {
+    if (!appointmentList) return;
+
+    appointmentList.addEventListener('change', e => {
+      if (!e.target.classList.contains('rs-date')) return;
+      const panel = e.target.closest('.appt-panel');
+      const time = panel.querySelector('.rs-time');
+      const err = panel.querySelector('.rs-error');
+      const hours = parseInt(panel.dataset.hours) || 1;
+      const r = getAvailableSlots(e.target.value, hours);
+      err.textContent = r.msg || '';
+      if (r.msg) { time.innerHTML = `<option value="">${r.label}</option>`; time.disabled = true; }
+      else { time.innerHTML = slotOptionsHTML(r.slots, hours); time.disabled = false; }
     });
 
-    appointmentList.querySelectorAll('.cancel-btn').forEach(btn => {
-      btn.addEventListener('click', () => {
-        if (confirm('Cancel this appointment?')) {
-          appointments = appointments.filter(a => a.id !== btn.dataset.id);
-          renderAppointments();
-          saveAppointments();
-        }
-      });
-    });
+    appointmentList.addEventListener('click', e => {
+      const btn = e.target.closest('[data-act]');
+      if (!btn) return;
+      const act = btn.dataset.act;
+      const app = appointments.find(a => a.id === btn.dataset.id);
 
-    if (appointmentCount) appointmentCount.textContent = appointments.length;
+      if (act === 'sent') {
+        if (app) { app.notice = null; saveAppointments(); }
+        setTimeout(renderAppointments, 400);
+        return;
+      }
+      if (act === 'reschedule' || act === 'cancel') { openPanel = { id: app.id, mode: act }; }
+      else if (act === 'close') { openPanel = null; }
+      else if (act === 'remove') { appointments = appointments.filter(a => a.id !== app.id); saveAppointments(); }
+      else if (act === 'confirm-cancel') { app.status = 'cancelled'; app.notice = 'cancel'; openPanel = null; saveAppointments(); }
+      else if (act === 'save-reschedule') {
+        const panel = btn.closest('.appt-panel');
+        const date = panel.querySelector('.rs-date').value;
+        const time = panel.querySelector('.rs-time').value;
+        const err = panel.querySelector('.rs-error');
+        if (!date) { err.textContent = 'Please choose a date.'; return; }
+        if (!time) { err.textContent = err.textContent || 'Please choose a time.'; return; }
+        app.dateTime = `${date}T${time}`;
+        app.status = 'reschedule requested';
+        app.notice = 'reschedule';
+        openPanel = null;
+        saveAppointments();
+      }
+      renderAppointments();
+    });
+  }
+
+  function setupNavToggle() {
+    const nav = document.querySelector('.nav');
+    const toggle = document.getElementById('nav-toggle');
+    if (!nav || !toggle) return;
+    const setOpen = open => {
+      nav.classList.toggle('open', open);
+      toggle.setAttribute('aria-expanded', String(open));
+      toggle.setAttribute('aria-label', open ? 'Close menu' : 'Open menu');
+      toggle.innerHTML = `<i class="fas ${open ? 'fa-xmark' : 'fa-bars'}"></i>`;
+    };
+    toggle.addEventListener('click', () => setOpen(!nav.classList.contains('open')));
+    document.addEventListener('click', e => { if (!nav.contains(e.target)) setOpen(false); });
   }
 
   function saveAppointments() {
@@ -208,49 +293,6 @@ Reply to this client to confirm.`;
         if (savedId) idCounter = parseInt(savedId) || 1;
       }
     } catch (e) {}
-  }
-
-  function rescheduleAppointment() {
-    const id = rescheduleId.value.trim();
-    const newDt = rescheduleDatetime.value;
-    if (!id || !newDt) {
-      rescheduleMsg.textContent = '⚠️ Please fill both fields';
-      rescheduleMsg.style.display = 'block';
-      rescheduleMsg.style.color = '#b33c3c';
-      return;
-    }
-
-    const key = id.toUpperCase();
-    const app = appointments.find(a => a.id === id || (a.code || '').toUpperCase() === key);
-    if (!app) {
-      rescheduleMsg.textContent = '⚠️ Appointment not found';
-      rescheduleMsg.style.display = 'block';
-      rescheduleMsg.style.color = '#b33c3c';
-      return;
-    }
-
-    app.dateTime = newDt;
-    app.status = 'rescheduled';
-    renderAppointments();
-    saveAppointments();
-
-    rescheduleMsg.textContent = `✅ ${app.code || app.id} rescheduled successfully!`;
-    rescheduleMsg.style.display = 'block';
-    rescheduleMsg.style.color = '#2d7d46';
-    setTimeout(() => rescheduleMsg.style.display = 'none', 5000);
-
-    const formattedDate = formatDate(newDt);
-    const msg = `🔄 RESCHEDULED - LUMIERE SPA
-
-🔖 BOOKING CODE: ${app.code || app.id}
-📋 SERVICE: ${app.productName}
-👤 CLIENT: ${app.clientName}
-📅 NEW TIME: ${formattedDate}
-📱 CLIENT PHONE: ${app.clientPhone}
-
-⚠️ Please confirm this reschedule.`;
-
-    window.open(`https://wa.me/${SPA_WHATSAPP}?text=${encodeURIComponent(msg)}`, '_blank');
   }
 
   function renderReviews() {
@@ -299,16 +341,36 @@ Reply to this client to confirm.`;
   // ---------- BOOKING FORM ----------
   const OPEN_HOUR = 9;     // first slot starts 09:00
   const CLOSE_HOUR = 17;   // last slot ends 17:00
-  const SERVICE_INFO = {
-    p1: 'Essential oils for relaxation',
-    p2: 'Warm stone therapy',
-    p3: 'Intense muscle relief',
-    p4: 'Skin rejuvenation'
-  };
+  const SERVICES = [
+    { id: 'p1', name: 'Aromatherapy', price: 75,  desc: 'Essential oils for relaxation' },
+    { id: 'p2', name: 'Hot Stone',    price: 95,  desc: 'Warm stone therapy' },
+    { id: 'p3', name: 'Deep Tissue',  price: 110, desc: 'Intense muscle relief' },
+    { id: 'p4', name: 'Facial & Glow', price: 85, desc: 'Skin rejuvenation' }
+  ];
 
   function todayStr() {
     const n = new Date();
     return `${n.getFullYear()}-${pad(n.getMonth() + 1)}-${pad(n.getDate())}`;
+  }
+
+  function getAvailableSlots(val, hours) {
+    hours = hours || 1;
+    if (val < todayStr()) return { slots: [], msg: 'That date has already passed.', label: 'Choose another date' };
+    const [y, m, d] = val.split('-').map(Number);
+    if (new Date(y, m - 1, d).getDay() === 0) return { slots: [], msg: "We're closed on Sundays. Please choose another day.", label: 'Closed on Sundays' };
+    const now = new Date(), isToday = val === todayStr(), slots = [];
+    for (let h = OPEN_HOUR; h + hours <= CLOSE_HOUR; h++) {
+      if (isToday && h <= now.getHours()) continue;
+      slots.push(h);
+    }
+    if (!slots.length) return { slots, msg: 'No more slots today. Please choose another day.', label: 'No slots left today' };
+    return { slots };
+  }
+
+  function slotOptionsHTML(slots, hours) {
+    hours = hours || 1;
+    return '<option value="">Select a time...</option>' +
+      slots.map(h => `<option value="${pad(h)}:00">${pad(h)}:00 – ${pad(h + hours)}:00</option>`).join('');
   }
 
   function setError(input, message) {
@@ -325,23 +387,38 @@ Reply to this client to confirm.`;
   function setupBookingForm() {
     const form = document.getElementById('booking-form');
     const confirmBox = document.getElementById('booking-confirm');
-    if (!form || !submitBookingBtn) return;
+    const optionsBox = document.getElementById('service-options');
+    if (!form || !submitBookingBtn || !optionsBox) return;
 
-    serviceSelect.dataset.err = 'service';
     clientName.dataset.err = 'name';
     clientPhone.dataset.err = 'phone';
     bookingDate.dataset.err = 'date';
     bookingTime.dataset.err = 'time';
 
     const summary = document.getElementById('service-summary');
+    const errServices = document.getElementById('err-services');
     bookingDate.min = todayStr();
 
+    optionsBox.innerHTML = SERVICES.map(sv => `
+      <label class="service-option">
+        <input type="checkbox" value="${sv.id}" />
+        <span class="so-check"><i class="fas fa-check"></i></span>
+        <span class="so-body"><strong>${esc(sv.name)}</strong><small>${esc(sv.desc)}</small></span>
+        <span class="so-price">R${sv.price}</span>
+      </label>`).join('');
+    const boxes = Array.from(optionsBox.querySelectorAll('input'));
+    const selected = () => SERVICES.filter(sv => boxes.some(b => b.checked && b.value === sv.id));
+
     function updateSummary() {
-      const p = getProductFromSelect();
-      if (!p) { summary.hidden = true; return; }
-      document.getElementById('summary-name').textContent = p.name;
-      document.getElementById('summary-desc').textContent = SERVICE_INFO[p.id] || '';
-      document.getElementById('summary-price').textContent = p.price;
+      const sel = selected();
+      boxes.forEach(b => b.closest('.service-option').classList.toggle('is-selected', b.checked));
+      if (!sel.length) { summary.hidden = true; return; }
+      document.getElementById('summary-lines').innerHTML = sel.map(sv =>
+        `<div class="summary-line"><span>${esc(sv.name)}</span><span>R${sv.price}</span></div>`).join('');
+      document.getElementById('summary-duration').textContent =
+        'About ' + (sel.length === 1 ? '1 hour' : sel.length + ' hours');
+      document.getElementById('summary-price').textContent =
+        'Total R' + sel.reduce((t, sv) => t + sv.price, 0);
       summary.hidden = false;
     }
 
@@ -359,42 +436,20 @@ Reply to this client to confirm.`;
       setError(bookingTime, '');
       const val = bookingDate.value;
       if (!val) { setTimeMessage('Choose a date first'); return; }
-
-      if (val < todayStr()) {
-        setTimeMessage('Choose another date');
-        setError(bookingDate, 'That date has already passed.');
-        return;
-      }
-      const [y, m, d] = val.split('-').map(Number);
-      if (new Date(y, m - 1, d).getDay() === 0) {
-        setTimeMessage('Closed on Sundays');
-        setError(bookingDate, "We're closed on Sundays. Please choose another day.");
-        return;
-      }
-
-      const now = new Date();
-      const isToday = val === todayStr();
-      const slots = [];
-      for (let h = OPEN_HOUR; h < CLOSE_HOUR; h++) {
-        if (isToday && h <= now.getHours()) continue;
-        slots.push(h);
-      }
-      if (slots.length === 0) {
-        setTimeMessage('No slots left today');
-        setError(bookingDate, 'No more slots today. Please choose another day.');
-        return;
-      }
-
+      const hours = Math.max(1, selected().length);
+      const r = getAvailableSlots(val, hours);
+      if (r.msg) { setTimeMessage(r.label); setError(bookingDate, r.msg); return; }
       bookingTime.disabled = false;
-      bookingTime.innerHTML = '<option value="">Select a time...</option>' +
-        slots.map(h => `<option value="${pad(h)}:00">${pad(h)}:00 – ${pad(h + 1)}:00</option>`).join('');
+      bookingTime.innerHTML = slotOptionsHTML(r.slots, hours);
     }
 
     function validate() {
       let firstBad = null;
       const fail = (input, msg) => { setError(input, msg); if (!firstBad) firstBad = input; };
 
-      if (!serviceSelect.value) fail(serviceSelect, 'Please choose a service.'); else setError(serviceSelect, '');
+      if (!selected().length) { errServices.textContent = 'Please choose at least one service.'; firstBad = boxes[0]; }
+      else errServices.textContent = '';
+
       if (!clientName.value.trim()) fail(clientName, 'Please enter your name.'); else setError(clientName, '');
 
       const phone = clientPhone.value.trim();
@@ -411,9 +466,10 @@ Reply to this client to confirm.`;
     }
 
     function showConfirmation(app) {
+      const list = appServices(app);
       document.getElementById('confirm-id').textContent = app.code || app.id;
-      document.getElementById('confirm-service').textContent = app.productName;
-      document.getElementById('confirm-when').textContent = formatDate(app.dateTime, true);
+      document.getElementById('confirm-service').innerHTML = list.map(x => esc(x.name)).join('<br>');
+      document.getElementById('confirm-when').textContent = formatDate(app.dateTime, true, appHours(app));
       document.getElementById('confirm-name').textContent = app.clientName;
       document.getElementById('confirm-price').textContent = app.productPrice;
       document.getElementById('confirm-whatsapp').href =
@@ -426,11 +482,12 @@ Reply to this client to confirm.`;
     }
 
     function resetForm() {
-      serviceSelect.value = '';
+      boxes.forEach(b => { b.checked = false; });
       clientName.value = '';
       clientPhone.value = '';
       bookingDate.value = '';
-      [serviceSelect, clientName, clientPhone, bookingDate, bookingTime].forEach(el => setError(el, ''));
+      errServices.textContent = '';
+      [clientName, clientPhone, bookingDate, bookingTime].forEach(el => setError(el, ''));
       buildTimeSlots();
       updateSummary();
       confirmBox.hidden = true;
@@ -438,7 +495,13 @@ Reply to this client to confirm.`;
       form.scrollIntoView({ behavior: 'smooth', block: 'start' });
     }
 
-    serviceSelect.addEventListener('change', () => { setError(serviceSelect, ''); updateSummary(); });
+    boxes.forEach(b => b.addEventListener('change', () => {
+      errServices.textContent = '';
+      updateSummary();
+      const prev = bookingTime.value;
+      buildTimeSlots();
+      if (prev && Array.from(bookingTime.options).some(o => o.value === prev)) bookingTime.value = prev;
+    }));
     clientName.addEventListener('input', () => setError(clientName, ''));
     clientPhone.addEventListener('input', () => setError(clientPhone, ''));
     bookingDate.addEventListener('change', buildTimeSlots);
@@ -446,11 +509,17 @@ Reply to this client to confirm.`;
 
     submitBookingBtn.addEventListener('click', () => {
       if (!validate()) return;
-      const app = addAppointment(getProductFromSelect(), {
-        clientName: clientName.value.trim(),
-        clientPhone: clientPhone.value.trim(),
-        dateTime: `${bookingDate.value}T${bookingTime.value}`
-      });
+      const sel = selected();
+      const total = sel.reduce((t, sv) => t + sv.price, 0);
+      const app = addAppointment(
+        { name: sel.map(sv => sv.name).join(' + '), price: 'R' + total },
+        {
+          clientName: clientName.value.trim(),
+          clientPhone: clientPhone.value.trim(),
+          dateTime: `${bookingDate.value}T${bookingTime.value}`,
+          services: sel.map(sv => ({ id: sv.id, name: sv.name, price: sv.price }))
+        }
+      );
       showConfirmation(app);
     });
 
@@ -460,11 +529,9 @@ Reply to this client to confirm.`;
         "Don't forget to press Send in WhatsApp. We'll reply to confirm your time.";
     });
 
-    // Preselect the service when arriving from a "Book Now" card (booking.html?service=p1)
+    // Preselect a service when arriving from a "Book Now" card (booking.html?service=p1)
     const wanted = new URLSearchParams(window.location.search).get('service');
-    if (wanted && serviceSelect.querySelector(`option[value="${wanted}"]`)) {
-      serviceSelect.value = wanted;
-    }
+    boxes.forEach(b => { if (b.value === wanted) b.checked = true; });
     updateSummary();
     buildTimeSlots();
   }
@@ -477,9 +544,8 @@ Reply to this client to confirm.`;
 
     setupBookingForm();
 
-    if (rescheduleBtn) {
-      rescheduleBtn.addEventListener('click', rescheduleAppointment);
-    }
+    setupAppointmentActions();
+    setupNavToggle();
 
     if (submitReviewBtn) {
       submitReviewBtn.addEventListener('click', submitReview);

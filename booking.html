@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Spa - Book Now</title>
+  <title>Lumiere Spa - Book Now</title>
   <!-- FontAwesome Icons (free) -->
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" />
   <!-- Google Fonts -->
@@ -16,9 +16,10 @@
   <nav class="nav">
     <div class="logo">
       <i class="fas fa-spa"></i>
-      <span>Spa</span>
+      <span>Lumiere</span>
       <span class="logo-sub">SPA & WELLNESS</span>
     </div>
+    <button class="nav-toggle" id="nav-toggle" aria-label="Open menu" aria-expanded="false"><i class="fas fa-bars"></i></button>
     <div class="nav-links">
       <a href="index.html">Home</a>
       <a href="services.html">Services</a>
@@ -41,23 +42,14 @@
       <!-- ===== BOOKING FORM ===== -->
       <div id="booking-form">
         <div class="form-group">
-          <label for="service-select">Select Service</label>
-          <select id="service-select" required>
-            <option value="">Select a service...</option>
-            <option value="p1">Aromatherapy - R75</option>
-            <option value="p2">Hot Stone - R95</option>
-            <option value="p3">Deep Tissue - R110</option>
-            <option value="p4">Facial & Glow - R85</option>
-          </select>
-          <div class="field-error" id="err-service" role="alert"></div>
+          <label id="services-label">Choose your services <span class="label-hint">(pick one or more)</span></label>
+          <div class="service-options" id="service-options" role="group" aria-labelledby="services-label"></div>
+          <div class="field-error" id="err-services" role="alert"></div>
         </div>
 
         <div class="service-summary" id="service-summary" hidden>
-          <div class="summary-text">
-            <strong id="summary-name"></strong>
-            <span id="summary-desc"></span>
-          </div>
-          <div class="summary-price" id="summary-price"></div>
+          <div id="summary-lines"></div>
+          <div class="summary-total"><span id="summary-duration"></span><strong id="summary-price"></strong></div>
         </div>
 
         <div class="form-group">
@@ -100,10 +92,10 @@
 
         <div class="confirm-summary">
           <div class="confirm-row"><span>Booking code</span><strong id="confirm-id" class="confirm-code"></strong></div>
-          <div class="confirm-row"><span>Service</span><strong id="confirm-service"></strong></div>
+          <div class="confirm-row"><span>Services</span><strong id="confirm-service"></strong></div>
           <div class="confirm-row"><span>When</span><strong id="confirm-when"></strong></div>
           <div class="confirm-row"><span>Name</span><strong id="confirm-name"></strong></div>
-          <div class="confirm-row confirm-total"><span>Price</span><strong id="confirm-price"></strong></div>
+          <div class="confirm-row confirm-total"><span>Total</span><strong id="confirm-price"></strong></div>
         </div>
 
         <a class="btn btn-whatsapp btn-block" id="confirm-whatsapp" href="#" target="_blank" rel="noopener"><i class="fab fa-whatsapp"></i> Send on WhatsApp</a>
@@ -142,7 +134,7 @@
       </div>
     </div>
     <div class="footer-bottom">
-      <p>&copy; 2026 Spa & Wellness. All rights reserved.</p>
+      <p>&copy; 2026 Lumiere Spa & Wellness. All rights reserved.</p>
     </div>
   </footer>
   <script src="js/script.js"></script>
