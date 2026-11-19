@@ -21,9 +21,9 @@
   const serviceSelect = document.getElementById('service-select');
   const clientName = document.getElementById('client-name');
   const clientPhone = document.getElementById('client-phone');
-  const bookingDatetime = document.getElementById('booking-datetime');
+  const bookingDate = document.getElementById('booking-date');
+  const bookingTime = document.getElementById('booking-time');
   const submitBookingBtn = document.getElementById('submit-booking-btn');
-  const bookingMsg = document.getElementById('booking-msg');
 
   const rescheduleId = document.getElementById('reschedule-id');
   const rescheduleDatetime = document.getElementById('reschedule-datetime');
@@ -36,11 +36,36 @@
   const reviewList = document.getElementById('review-list');
 
   // HELPERS
-  function formatDate(dt) {
+  function esc(value) {
+    return String(value == null ? '' : value).replace(/[&<>"']/g, c => ({
+      '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'
+    }[c]));
+  }
+
+  function pad(n) {
+    return String(n).padStart(2, '0');
+  }
+
+  // Booking code like LUM-7K4Q (no 0/O/1/I so it is easy to read out)
+  function generateBookingCode() {
+    const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+    let code;
+    do {
+      const bytes = new Uint8Array(4);
+      (window.crypto || window.msCrypto).getRandomValues(bytes);
+      code = 'LUM-' + Array.from(bytes, b => chars[b % chars.length]).join('');
+    } while (appointments.some(a => a.code === code));
+    return code;
+  }
+
+  function formatDate(dt, withYear) {
     if (!dt) return 'TBD';
     try {
       const d = new Date(dt);
-      return d.toLocaleString('en-US', { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' });
+      if (isNaN(d)) return dt;
+      const opts = { weekday: 'short', day: 'numeric', month: 'short' };
+      if (withYear) opts.year = 'numeric';
+      return d.toLocaleDateString('en-GB', opts) + ' at ' + pad(d.getHours()) + ':' + pad(d.getMinutes());
     } catch { return dt; }
   }
 
@@ -90,6 +115,7 @@
     
     const newApp = {
       id: '#' + (idCounter++),
+      code: generateBookingCode(),
       productName: product.name,
       productPrice: product.price,
       dateTime: dateStr,
@@ -102,28 +128,23 @@
     renderAppointments();
     saveAppointments();
 
-    const formattedDate = formatDate(dateStr);
-    const msg = `🕊️ NEW BOOKING - LUMIERE SPA
+    return newApp;
+  }
+
+  function buildBookingMessage(app) {
+    return `NEW BOOKING - LUMIERE SPA
 
 ━━━━━━━━━━━━━━━━━━━━
-📋 SERVICE: ${product.name}
-💰 PRICE: ${product.price}
-👤 CLIENT: ${newApp.clientName}
-📱 PHONE: ${newApp.clientPhone}
-📅 DATE/TIME: ${formattedDate}
+🔖 BOOKING CODE: ${app.code || app.id}
+📋 SERVICE: ${app.productName}
+💰 PRICE: ${app.productPrice}
+👤 CLIENT: ${app.clientName}
+📱 PHONE: ${app.clientPhone}
+📅 DATE/TIME: ${formatDate(app.dateTime, true)}
 ━━━━━━━━━━━━━━━━━━━━
 
 ⚠️ PLEASE CONFIRM THIS BOOKING
 Reply to this client to confirm.`;
-
-    window.open(`https://wa.me/${SPA_WHATSAPP}?text=${encodeURIComponent(msg)}`, '_blank');
-
-    if (bookingMsg) {
-      bookingMsg.innerHTML = `✅ ${product.name} booked successfully!<br><small>WhatsApp message sent to spa owner for confirmation.</small>`;
-      bookingMsg.style.display = 'block';
-      bookingMsg.style.color = '#2d7d46';
-      setTimeout(() => bookingMsg.style.display = 'none', 8000);
-    }
   }
 
   function renderAppointments() {
@@ -137,22 +158,23 @@ Reply to this client to confirm.`;
     appointmentList.innerHTML = appointments.map(app => `
       <div class="appointment-item">
         <div class="info">
-          <strong>${app.id}</strong>
-          <span>${app.productName}</span>
-          <span>${app.clientName}</span>
-          <span>${formatDate(app.dateTime)}</span>
-          <span class="badge">${app.status}</span>
+          <strong>${esc(app.code || app.id)}</strong>
+          <span>${esc(app.productName)}</span>
+          <span>${esc(app.clientName)}</span>
+          <span>${esc(formatDate(app.dateTime))}</span>
+          <span class="badge">${esc(app.status)}</span>
         </div>
         <div class="actions">
-          <button class="reschedule-btn" data-id="${app.id}"><i class="fas fa-rotate"></i></button>
-          <button class="cancel-btn" data-id="${app.id}"><i class="fas fa-times"></i></button>
+          <button class="reschedule-btn" data-id="${esc(app.id)}"><i class="fas fa-rotate"></i></button>
+          <button class="cancel-btn" data-id="${esc(app.id)}"><i class="fas fa-times"></i></button>
         </div>
       </div>
     `).join('');
 
     appointmentList.querySelectorAll('.reschedule-btn').forEach(btn => {
       btn.addEventListener('click', () => {
-        rescheduleId.value = btn.dataset.id;
+        const target = appointments.find(a => a.id === btn.dataset.id);
+        rescheduleId.value = target ? (target.code || target.id) : btn.dataset.id;
         document.querySelector('#page-appointments')?.scrollIntoView({ behavior: 'smooth' });
       });
     });
@@ -198,7 +220,8 @@ Reply to this client to confirm.`;
       return;
     }
 
-    const app = appointments.find(a => a.id === id);
+    const key = id.toUpperCase();
+    const app = appointments.find(a => a.id === id || (a.code || '').toUpperCase() === key);
     if (!app) {
       rescheduleMsg.textContent = '⚠️ Appointment not found';
       rescheduleMsg.style.display = 'block';
@@ -211,7 +234,7 @@ Reply to this client to confirm.`;
     renderAppointments();
     saveAppointments();
 
-    rescheduleMsg.textContent = `✅ ${id} rescheduled successfully!`;
+    rescheduleMsg.textContent = `✅ ${app.code || app.id} rescheduled successfully!`;
     rescheduleMsg.style.display = 'block';
     rescheduleMsg.style.color = '#2d7d46';
     setTimeout(() => rescheduleMsg.style.display = 'none', 5000);
@@ -219,6 +242,7 @@ Reply to this client to confirm.`;
     const formattedDate = formatDate(newDt);
     const msg = `🔄 RESCHEDULED - LUMIERE SPA
 
+🔖 BOOKING CODE: ${app.code || app.id}
 📋 SERVICE: ${app.productName}
 👤 CLIENT: ${app.clientName}
 📅 NEW TIME: ${formattedDate}
@@ -234,8 +258,8 @@ Reply to this client to confirm.`;
     reviewList.innerHTML = reviews.map(r => `
       <div class="review-item">
         <div class="stars">${'★'.repeat(r.stars)}${'☆'.repeat(5-r.stars)}</div>
-        <div class="review-meta"><span>${r.name}</span><span>· ${r.date}</span></div>
-        <p>${r.text}</p>
+        <div class="review-meta"><span>${esc(r.name)}</span><span>· ${esc(r.date)}</span></div>
+        <p>${esc(r.text)}</p>
       </div>
     `).join('');
   }
@@ -271,48 +295,187 @@ Reply to this client to confirm.`;
     alert('Thank you for your review!');
   }
 
+
+  // ---------- BOOKING FORM ----------
+  const OPEN_HOUR = 9;     // first slot starts 09:00
+  const CLOSE_HOUR = 17;   // last slot ends 17:00
+  const SERVICE_INFO = {
+    p1: 'Essential oils for relaxation',
+    p2: 'Warm stone therapy',
+    p3: 'Intense muscle relief',
+    p4: 'Skin rejuvenation'
+  };
+
+  function todayStr() {
+    const n = new Date();
+    return `${n.getFullYear()}-${pad(n.getMonth() + 1)}-${pad(n.getDate())}`;
+  }
+
+  function setError(input, message) {
+    const err = document.getElementById('err-' + input.dataset.err);
+    if (err) err.textContent = message || '';
+    input.classList.toggle('has-error', !!message);
+    input.setAttribute('aria-invalid', message ? 'true' : 'false');
+  }
+
+  function isValidPhone(raw) {
+    return /^(\+?27|0)\d{9}$/.test(raw.replace(/[\s\-()]/g, ''));
+  }
+
+  function setupBookingForm() {
+    const form = document.getElementById('booking-form');
+    const confirmBox = document.getElementById('booking-confirm');
+    if (!form || !submitBookingBtn) return;
+
+    serviceSelect.dataset.err = 'service';
+    clientName.dataset.err = 'name';
+    clientPhone.dataset.err = 'phone';
+    bookingDate.dataset.err = 'date';
+    bookingTime.dataset.err = 'time';
+
+    const summary = document.getElementById('service-summary');
+    bookingDate.min = todayStr();
+
+    function updateSummary() {
+      const p = getProductFromSelect();
+      if (!p) { summary.hidden = true; return; }
+      document.getElementById('summary-name').textContent = p.name;
+      document.getElementById('summary-desc').textContent = SERVICE_INFO[p.id] || '';
+      document.getElementById('summary-price').textContent = p.price;
+      summary.hidden = false;
+    }
+
+    function setTimeMessage(text) {
+      bookingTime.innerHTML = '';
+      const o = document.createElement('option');
+      o.value = '';
+      o.textContent = text;
+      bookingTime.appendChild(o);
+      bookingTime.disabled = true;
+    }
+
+    function buildTimeSlots() {
+      setError(bookingDate, '');
+      setError(bookingTime, '');
+      const val = bookingDate.value;
+      if (!val) { setTimeMessage('Choose a date first'); return; }
+
+      if (val < todayStr()) {
+        setTimeMessage('Choose another date');
+        setError(bookingDate, 'That date has already passed.');
+        return;
+      }
+      const [y, m, d] = val.split('-').map(Number);
+      if (new Date(y, m - 1, d).getDay() === 0) {
+        setTimeMessage('Closed on Sundays');
+        setError(bookingDate, "We're closed on Sundays. Please choose another day.");
+        return;
+      }
+
+      const now = new Date();
+      const isToday = val === todayStr();
+      const slots = [];
+      for (let h = OPEN_HOUR; h < CLOSE_HOUR; h++) {
+        if (isToday && h <= now.getHours()) continue;
+        slots.push(h);
+      }
+      if (slots.length === 0) {
+        setTimeMessage('No slots left today');
+        setError(bookingDate, 'No more slots today. Please choose another day.');
+        return;
+      }
+
+      bookingTime.disabled = false;
+      bookingTime.innerHTML = '<option value="">Select a time...</option>' +
+        slots.map(h => `<option value="${pad(h)}:00">${pad(h)}:00 – ${pad(h + 1)}:00</option>`).join('');
+    }
+
+    function validate() {
+      let firstBad = null;
+      const fail = (input, msg) => { setError(input, msg); if (!firstBad) firstBad = input; };
+
+      if (!serviceSelect.value) fail(serviceSelect, 'Please choose a service.'); else setError(serviceSelect, '');
+      if (!clientName.value.trim()) fail(clientName, 'Please enter your name.'); else setError(clientName, '');
+
+      const phone = clientPhone.value.trim();
+      if (!phone) fail(clientPhone, 'Please enter your WhatsApp number.');
+      else if (!isValidPhone(phone)) fail(clientPhone, 'Please enter a valid number, e.g. 082 123 4567.');
+      else setError(clientPhone, '');
+
+      if (!bookingDate.value) fail(bookingDate, 'Please choose a date.');
+      else if (bookingDate.classList.contains('has-error')) { if (!firstBad) firstBad = bookingDate; }
+      if (!bookingTime.disabled && !bookingTime.value) fail(bookingTime, 'Please choose a time.');
+
+      if (firstBad) firstBad.focus();
+      return !firstBad;
+    }
+
+    function showConfirmation(app) {
+      document.getElementById('confirm-id').textContent = app.code || app.id;
+      document.getElementById('confirm-service').textContent = app.productName;
+      document.getElementById('confirm-when').textContent = formatDate(app.dateTime, true);
+      document.getElementById('confirm-name').textContent = app.clientName;
+      document.getElementById('confirm-price').textContent = app.productPrice;
+      document.getElementById('confirm-whatsapp').href =
+        `https://wa.me/${SPA_WHATSAPP}?text=${encodeURIComponent(buildBookingMessage(app))}`;
+      document.getElementById('confirm-note').textContent = "We'll reply on WhatsApp to confirm your time.";
+      form.hidden = true;
+      confirmBox.hidden = false;
+      confirmBox.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      confirmBox.focus({ preventScroll: true });
+    }
+
+    function resetForm() {
+      serviceSelect.value = '';
+      clientName.value = '';
+      clientPhone.value = '';
+      bookingDate.value = '';
+      [serviceSelect, clientName, clientPhone, bookingDate, bookingTime].forEach(el => setError(el, ''));
+      buildTimeSlots();
+      updateSummary();
+      confirmBox.hidden = true;
+      form.hidden = false;
+      form.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+
+    serviceSelect.addEventListener('change', () => { setError(serviceSelect, ''); updateSummary(); });
+    clientName.addEventListener('input', () => setError(clientName, ''));
+    clientPhone.addEventListener('input', () => setError(clientPhone, ''));
+    bookingDate.addEventListener('change', buildTimeSlots);
+    bookingTime.addEventListener('change', () => setError(bookingTime, ''));
+
+    submitBookingBtn.addEventListener('click', () => {
+      if (!validate()) return;
+      const app = addAppointment(getProductFromSelect(), {
+        clientName: clientName.value.trim(),
+        clientPhone: clientPhone.value.trim(),
+        dateTime: `${bookingDate.value}T${bookingTime.value}`
+      });
+      showConfirmation(app);
+    });
+
+    document.getElementById('book-another-btn').addEventListener('click', resetForm);
+    document.getElementById('confirm-whatsapp').addEventListener('click', () => {
+      document.getElementById('confirm-note').textContent =
+        "Don't forget to press Send in WhatsApp. We'll reply to confirm your time.";
+    });
+
+    // Preselect the service when arriving from a "Book Now" card (booking.html?service=p1)
+    const wanted = new URLSearchParams(window.location.search).get('service');
+    if (wanted && serviceSelect.querySelector(`option[value="${wanted}"]`)) {
+      serviceSelect.value = wanted;
+    }
+    updateSummary();
+    buildTimeSlots();
+  }
+
   function init() {
     loadAppointments();
     setupBookButtons();
     renderAppointments();
     renderReviews();
 
-    if (bookingDatetime) {
-      bookingDatetime.min = getTodayMinDateTime();
-    }
-
-    if (submitBookingBtn) {
-      submitBookingBtn.addEventListener('click', () => {
-        const product = getProductFromSelect();
-        if (!product) {
-          alert('Please select a service');
-          return;
-        }
-        if (!clientName.value.trim()) {
-          alert('Please enter your name');
-          return;
-        }
-        if (!clientPhone.value.trim()) {
-          alert('Please enter your WhatsApp number');
-          return;
-        }
-        if (!bookingDatetime.value) {
-          alert('Please select a date and time');
-          return;
-        }
-
-        addAppointment(product, {
-          clientName: clientName.value.trim(),
-          clientPhone: clientPhone.value.trim(),
-          dateTime: bookingDatetime.value
-        });
-
-        clientName.value = '';
-        clientPhone.value = '';
-        bookingDatetime.value = '';
-        serviceSelect.value = '';
-      });
-    }
+    setupBookingForm();
 
     if (rescheduleBtn) {
       rescheduleBtn.addEventListener('click', rescheduleAppointment);

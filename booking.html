@@ -36,33 +36,85 @@
       <span class="section-label">HOME > BOOK NOW</span>
       <h1>Book Your Experience</h1>
     </div>
-    <div class="booking-panel">
-      <div class="form-group">
-        <label>Select Service</label>
-        <select id="service-select" required>
-          <option value="">Select a service...</option>
-          <option value="p1">Aromatherapy - R75</option>
-          <option value="p2">Hot Stone - R95</option>
-          <option value="p3">Deep Tissue - R110</option>
-          <option value="p4">Facial & Glow - R85</option>
-        </select>
-      </div>
-      <div class="form-row">
+    <div class="booking-panel" id="booking-panel">
+
+      <!-- ===== BOOKING FORM ===== -->
+      <div id="booking-form">
         <div class="form-group">
-          <label>Your Name</label>
-          <input type="text" id="client-name" placeholder="Full name" required />
+          <label for="service-select">Select Service</label>
+          <select id="service-select" required>
+            <option value="">Select a service...</option>
+            <option value="p1">Aromatherapy - R75</option>
+            <option value="p2">Hot Stone - R95</option>
+            <option value="p3">Deep Tissue - R110</option>
+            <option value="p4">Facial & Glow - R85</option>
+          </select>
+          <div class="field-error" id="err-service" role="alert"></div>
         </div>
+
+        <div class="service-summary" id="service-summary" hidden>
+          <div class="summary-text">
+            <strong id="summary-name"></strong>
+            <span id="summary-desc"></span>
+          </div>
+          <div class="summary-price" id="summary-price"></div>
+        </div>
+
         <div class="form-group">
-          <label>WhatsApp Number</label>
-          <input type="tel" id="client-phone" placeholder="0673666047" required />
+          <label for="client-name">Your Name</label>
+          <input type="text" id="client-name" placeholder="Full name" autocomplete="name" />
+          <div class="field-error" id="err-name" role="alert"></div>
+        </div>
+
+        <div class="form-group">
+          <label for="client-phone">WhatsApp Number</label>
+          <input type="tel" id="client-phone" placeholder="e.g. 082 123 4567" autocomplete="tel" inputmode="tel" />
+          <div class="field-hint">We'll confirm your booking on this number.</div>
+          <div class="field-error" id="err-phone" role="alert"></div>
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label for="booking-date">Date</label>
+            <input type="date" id="booking-date" />
+            <div class="field-error" id="err-date" role="alert"></div>
+          </div>
+          <div class="form-group">
+            <label for="booking-time">Time</label>
+            <select id="booking-time" disabled>
+              <option value="">Choose a date first</option>
+            </select>
+            <div class="field-error" id="err-time" role="alert"></div>
+          </div>
+        </div>
+        <div class="field-hint hours-hint"><i class="far fa-clock"></i> Open Monday to Saturday, 09:00 – 17:00</div>
+
+        <button class="btn btn-primary btn-block" id="submit-booking-btn"><i class="fas fa-calendar-check"></i> Confirm Booking</button>
+      </div>
+
+      <!-- ===== CONFIRMATION (shown after booking) ===== -->
+      <div class="booking-confirm" id="booking-confirm" tabindex="-1" hidden>
+        <div class="confirm-icon"><i class="fas fa-check"></i></div>
+        <h3>Almost done!</h3>
+        <p class="confirm-lead">Send your booking to us on WhatsApp to finish. <strong>It isn't confirmed until we reply.</strong></p>
+
+        <div class="confirm-summary">
+          <div class="confirm-row"><span>Booking code</span><strong id="confirm-id" class="confirm-code"></strong></div>
+          <div class="confirm-row"><span>Service</span><strong id="confirm-service"></strong></div>
+          <div class="confirm-row"><span>When</span><strong id="confirm-when"></strong></div>
+          <div class="confirm-row"><span>Name</span><strong id="confirm-name"></strong></div>
+          <div class="confirm-row confirm-total"><span>Price</span><strong id="confirm-price"></strong></div>
+        </div>
+
+        <a class="btn btn-whatsapp btn-block" id="confirm-whatsapp" href="#" target="_blank" rel="noopener"><i class="fab fa-whatsapp"></i> Send on WhatsApp</a>
+        <p class="confirm-note" id="confirm-note">We'll reply on WhatsApp to confirm your time.</p>
+
+        <div class="confirm-links">
+          <a href="appointments.html" class="btn btn-outline btn-block">View My Appointments</a>
+          <button type="button" class="link-btn" id="book-another-btn">Book another service</button>
         </div>
       </div>
-      <div class="form-group">
-        <label>Preferred Date & Time</label>
-        <input type="datetime-local" id="booking-datetime" required />
-      </div>
-      <button class="btn btn-primary" id="submit-booking-btn"><i class="fas fa-calendar-check"></i> Confirm Booking</button>
-      <div id="booking-msg" class="msg" style="margin-top:1rem; display:none;"></div>
+
     </div>
   </section>
   

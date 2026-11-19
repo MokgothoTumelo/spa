@@ -1156,3 +1156,228 @@ a.contact-item:focus-visible i {
     padding: 0.85rem 1rem;
   }
 }
+
+/* ===== BOOKING FORM ===== */
+[hidden] {
+  display: none !important;
+}
+
+.booking-panel {
+  padding: 2rem 2rem 2.2rem;
+}
+
+.btn-block {
+  display: block;
+  width: 100%;
+  text-align: center;
+  padding: 0.9rem 1.2rem;
+}
+
+.btn-whatsapp {
+  background: #25a244;
+  color: #fff;
+  font-weight: 600;
+}
+
+.btn-whatsapp:hover {
+  background: #1d8a37;
+}
+
+.field-error {
+  color: #b33c3c;
+  font-size: 0.78rem;
+  margin: 0.35rem 0 0 0.9rem;
+  min-height: 0;
+}
+
+.field-error:empty {
+  display: none;
+}
+
+.field-hint {
+  color: #8a7a66;
+  font-size: 0.78rem;
+  margin: 0.35rem 0 0 0.9rem;
+}
+
+.hours-hint {
+  margin: -0.3rem 0 1.3rem 0.2rem;
+}
+
+.form-group input.has-error,
+.form-group select.has-error {
+  border-color: #b33c3c;
+  background: #fff8f7;
+}
+
+.form-group select:disabled {
+  color: #9b8e7e;
+  cursor: not-allowed;
+}
+
+.form-group input,
+.form-group select {
+  font-family: inherit;
+  min-height: 46px;
+}
+
+.service-summary {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 1rem;
+  background: #f6f0e8;
+  border: 1px solid #eadfd1;
+  border-radius: 16px;
+  padding: 0.8rem 1.1rem;
+  margin: -0.3rem 0 1.1rem;
+}
+
+.summary-text {
+  display: flex;
+  flex-direction: column;
+  gap: 0.1rem;
+}
+
+.summary-text strong {
+  font-size: 0.95rem;
+  color: #2d2a24;
+}
+
+.summary-text span {
+  font-size: 0.8rem;
+  color: #6b5d4c;
+}
+
+.summary-price {
+  font-weight: 600;
+  color: #a98763;
+  font-size: 1.1rem;
+  white-space: nowrap;
+}
+
+/* Confirmation card */
+.booking-confirm {
+  text-align: center;
+  outline: none;
+}
+
+.confirm-icon {
+  width: 64px;
+  height: 64px;
+  margin: 0 auto 1rem;
+  border-radius: 50%;
+  background: #e6f4ea;
+  color: #2d7d46;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.6rem;
+}
+
+.booking-confirm h3 {
+  font-size: 1.6rem;
+  margin-bottom: 0.4rem;
+}
+
+.confirm-lead {
+  color: #6b5d4c;
+  font-size: 0.95rem;
+  line-height: 1.5;
+  margin-bottom: 1.4rem;
+}
+
+.confirm-summary {
+  background: #faf8f5;
+  border: 1px solid #f0ebe5;
+  border-radius: 16px;
+  padding: 0.4rem 1.1rem;
+  margin-bottom: 1.4rem;
+  text-align: left;
+}
+
+.confirm-row {
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 0.7rem 0;
+  border-bottom: 1px solid #f0ebe5;
+  font-size: 0.9rem;
+}
+
+.confirm-row:last-child {
+  border-bottom: none;
+}
+
+.confirm-row span {
+  color: #8a7a66;
+}
+
+.confirm-row strong {
+  text-align: right;
+  font-weight: 500;
+  color: #2d2a24;
+}
+
+.confirm-total strong {
+  color: #a98763;
+  font-weight: 600;
+}
+
+.confirm-note {
+  color: #8a7a66;
+  font-size: 0.82rem;
+  margin: 0.8rem 0 1.4rem;
+}
+
+.confirm-links {
+  display: flex;
+  flex-direction: column;
+  gap: 0.8rem;
+  align-items: center;
+}
+
+.link-btn {
+  background: none;
+  border: none;
+  color: #8a7a66;
+  font-size: 0.85rem;
+  text-decoration: underline;
+  cursor: pointer;
+  padding: 0.4rem;
+}
+
+.link-btn:hover {
+  color: #2d2a24;
+}
+
+@media (max-width: 480px) {
+  body {
+    padding-top: 140px; /* stacked mobile nav is taller than 120px */
+  }
+
+  .booking-panel {
+    padding: 1.4rem 1.1rem 1.6rem;
+    border-radius: 18px;
+  }
+
+  .form-row {
+    gap: 0;
+  }
+
+  .form-row .form-group {
+    flex: 1 1 100%;
+  }
+}
+
+#booking-form,
+#booking-confirm {
+  scroll-margin-top: 160px;
+}
+
+.confirm-code {
+  font-family: 'Courier New', monospace;
+  letter-spacing: 1.5px;
+  font-size: 1rem;
+  color: #2d2a24;
+}
